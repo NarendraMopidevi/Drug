@@ -7,30 +7,51 @@ from app.services.chembl_services import get_data_from_chembl
 from app.services.pubmed_services import get_research_from_pubmed
 # research papers informatio
 
+from app.models.drug import DrugResponse
+
+
 router = APIRouter()
 
-@router.get("/{drug_name}")
 
-def get_drug(drug_name :str):
-    pubchem_drug_data = get_data_from_pubchem(drug_name)
-    chembl_drug_data = get_data_from_chembl(drug_name)
-    pubmed_research_data = get_research_from_pubmed(drug_name)
-    if pubchem_drug_data is None and chembl_drug_data is None:
+@router.get(
+    "/{drug_name}",
+    response_model=DrugResponse
+)
+def get_drug(drug_name: str):
+
+    pubchem_data = get_data_from_pubchem(drug_name)
+
+    chembl_data = get_data_from_chembl(drug_name)
+
+    research_data = get_research_from_pubmed(drug_name)
+
+    if (
+        pubchem_data is None
+        and chembl_data is None
+        and research_data is None
+    ):
         raise HTTPException(
-            status_code = 404,
-            details = "Drug not foudn in PubChem"
+            status_code=404,
+            detail="Drug not found"
         )
+
+    # return {
+    #     "drug_name": drug_name,
+    #     "pubchem": pubchem_data,
+    #     "chembl": chembl_data,
+    #     "research_information": research_data
+    # }
     return{
         "drug": {
             "drug_name" : drug_name
         },
         "chemical_information": {
-            "pubchem" : pubchem_drug_data,
+            "pubchem" : pubchem_data,
         },
         "development_information": {
-            "chembal" : chembl_drug_data
+            "chembl" : chembl_data
         },
         "research_papers" : {
-            "pubmed" : pubmed_research_data
+            "pubmed" : research_data
         }
     }
