@@ -1,3 +1,4 @@
+
 import requests
 
 
@@ -23,10 +24,10 @@ def get_data_from_chembl(drug_name: str):
     molecule = molecules[0]
 
     return {
-    "chembl_id": molecule.get("molecule_chembl_id"),
-    "pref_name": molecule.get("pref_name"),
-    "molecule_type": molecule.get("molecule_type"),
-    "max_phase": molecule.get("max_phase"),
-    "first_approval": molecule.get("first_approval"),
-    "black_box_warning": molecule.get("black_box_warning")
-}
+        "chembl_id": molecule.get("molecule_chembl_id"),
+        "pref_name": molecule.get("pref_name"),
+        "molecule_type": molecule.get("molecule_type"),
+        "max_phase": molecule.get("max_phase"),
+        "first_approval": molecule.get("first_approval"),
+        "black_box_warning": molecule.get("black_box_warning")
+    }

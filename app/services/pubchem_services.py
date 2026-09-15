@@ -19,10 +19,10 @@ def get_data_from_pubchem(drug_name: str):
     properties = data["PropertyTable"]["Properties"][0]
 
     return {
-    "name": properties.get("Title"),
-    "molecular_formula": properties.get("MolecularFormula"),
-    "molecular_weight": properties.get("MolecularWeight"),
-    "canonical_smiles": properties.get("ConnectivitySMILES"),
-    "isomeric_smiles": properties.get("SMILES"),
-    "cid": properties.get("CID")
-}
+        "name": properties.get("Title"),
+        "molecular_formula": properties.get("MolecularFormula"),
+        "molecular_weight": properties.get("MolecularWeight"),
+        "canonical_smiles": properties.get("ConnectivitySMILES"),
+        "isomeric_smiles": properties.get("SMILES"),
+        "cid": properties.get("CID")
+    }
