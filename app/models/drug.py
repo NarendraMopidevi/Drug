@@ -22,6 +22,32 @@ class ChEMBLData(BaseModel):
     black_box_warning: Optional[int] = None
 
 
+class ChEMBLTarget(BaseModel):
+
+    target_chembl_id: Optional[str] = None
+    mechanism_of_action: Optional[str] = None
+    action_type: Optional[str] = None
+
+
+class ChEMBLBioactivity(BaseModel):
+
+    activity_id: Optional[int] = None
+    target_chembl_id: Optional[str] = None
+    assay_chembl_id: Optional[str] = None
+    standard_type: Optional[str] = None
+    standard_value: Optional[str] = None
+    standard_units: Optional[str] = None
+    activity_comment: Optional[str] = None
+
+
+class ChEMBLTargetDetails(BaseModel):
+
+    target_chembl_id: Optional[str] = None
+    target_type: Optional[str] = None
+    pref_name: Optional[str] = None
+    organism: Optional[str] = None
+
+
 class ResearchPaper(BaseModel):
 
     pmid: Optional[str] = None
@@ -36,7 +62,17 @@ class ResearchPaper(BaseModel):
 class ResearchInformation(BaseModel):
 
     total_results: Optional[str] = None
-    papers: list[ResearchPaper] = Field(default_factory=list)
+    papers: list[ResearchPaper] = Field(
+        default_factory=list
+    )
+
+
+class AdverseEffectResearch(BaseModel):
+
+    total_results: Optional[str] = None
+    papers: list[ResearchPaper] = Field(
+        default_factory=list
+    )
 
 
 class DrugInfo(BaseModel):
@@ -54,9 +90,26 @@ class DevelopmentInformation(BaseModel):
     chembl: Optional[ChEMBLData] = None
 
 
+class BiologicalInformation(BaseModel):
+
+    targets: list[ChEMBLTarget] = Field(
+        default_factory=list
+    )
+
+    target_details: list[ChEMBLTargetDetails] = Field(
+        default_factory=list
+    )
+
+    bioactivity: list[ChEMBLBioactivity] = Field(
+        default_factory=list
+    )
+
+
 class ResearchPapers(BaseModel):
 
     pubmed: Optional[ResearchInformation] = None
+
+    adverse_effects: Optional[AdverseEffectResearch] = None
 
 
 class DrugResponse(BaseModel):
@@ -66,5 +119,7 @@ class DrugResponse(BaseModel):
     chemical_information: ChemicalInformation
 
     development_information: DevelopmentInformation
+
+    biological_information: BiologicalInformation
 
     research_papers: ResearchPapers

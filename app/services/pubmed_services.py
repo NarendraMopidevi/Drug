@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 
 
-def get_research_from_pubmed(drug_name: str, limit: int = 5):
+def get_research_from_pubmed(drug_name: str, limit: int = 3):
 
 
     search_url = f"{BASE_URL}/esearch.fcgi"
@@ -125,10 +125,29 @@ def get_research_from_pubmed(drug_name: str, limit: int = 5):
                 authors.append(full_name)
 
         # Abstract
+        abstract_parts = []
+
+        for abstract_element in abstract_elements:
+        
+            text = "".join(
+                abstract_element.itertext()
+            ).strip()
+        
+            if text:
+            
+                label = abstract_element.get(
+                    "Label"
+                )
+        
+                if label:
+                    abstract_parts.append(
+                        f"{label}: {text}"
+                    )
+                else:
+                    abstract_parts.append(text)
+        
         abstract = " ".join(
-            element.text
-            for element in abstract_elements
-            if element.text
+            abstract_parts
         )
 
         # DOI
@@ -176,6 +195,145 @@ def get_research_from_pubmed(drug_name: str, limit: int = 5):
             "abstract": abstract,
 
             "doi": doi
+        })
+
+    return {
+
+        "total_results": total_results,
+
+        "papers": papers
+
+    }
+
+
+def get_adverse_effect_research_from_pubmed(
+    drug_name: str,
+    limit: int = 3
+):
+
+    search_url = f"{BASE_URL}/esearch.fcgi"
+
+    search_params = {
+        "db": "pubmed",
+        "term": f"{drug_name} AND adverse effects",
+        "retmax": limit,
+        "retmode": "json"
+    }
+
+    search_response = requests.get(
+        search_url,
+        params=search_params
+    )
+
+    if search_response.status_code != 200:
+        return None
+
+    search_data = search_response.json()
+
+    search_result = search_data.get(
+        "esearchresult",
+        {}
+    )
+
+    pmids = search_result.get(
+        "idlist",
+        []
+    )
+
+    total_results = search_result.get(
+        "count",
+        "0"
+    )
+
+    if not pmids:
+        return {
+            "total_results": total_results,
+            "papers": []
+        }
+
+    # --------------------------------
+    # Step 2: Fetch article details
+    # --------------------------------
+
+    fetch_url = f"{BASE_URL}/efetch.fcgi"
+
+    fetch_params = {
+        "db": "pubmed",
+        "id": ",".join(pmids),
+        "retmode": "xml"
+    }
+
+    fetch_response = requests.get(
+        fetch_url,
+        params=fetch_params
+    )
+
+    if fetch_response.status_code != 200:
+        return None
+
+    root = ET.fromstring(
+        fetch_response.text
+    )
+
+    papers = []
+
+    for article in root.findall(
+        ".//PubmedArticle"
+    ):
+
+        pmid_element = article.find(
+            ".//PMID"
+        )
+
+        title_element = article.find(
+            ".//ArticleTitle"
+        )
+
+        # --------------------------------
+        # Abstract
+        # --------------------------------
+
+        abstract_parts = []
+
+        for abstract_element in article.findall(
+            ".//Abstract/AbstractText"
+        ):
+
+            text = "".join(
+                abstract_element.itertext()
+            ).strip()
+
+            if text:
+                label = abstract_element.get(
+                    "Label"
+                )
+
+                if label:
+                    abstract_parts.append(
+                        f"{label}: {text}"
+                    )
+                else:
+                    abstract_parts.append(text)
+
+        abstract = " ".join(
+            abstract_parts
+        )
+
+        papers.append({
+
+            "pmid": (
+                pmid_element.text
+                if pmid_element is not None
+                else None
+            ),
+
+            "title": (
+                "".join(title_element.itertext()).strip()
+                if title_element is not None
+                else None
+            ),
+
+            "abstract": abstract
         })
 
     return {
