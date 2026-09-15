@@ -1,2 +1,6 @@
 venv/
 .venv/
+test_vector_storage.py
+test_embedding_model.py
+test_doc_builder.py
+testing.py
