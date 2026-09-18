@@ -1,6 +1,12 @@
 venv/
 .venv/
+.env
 test_vector_storage.py
 test_embedding_model.py
 test_doc_builder.py
+testing.py
+test_chunker.py
+test_gemini_api.py
+test_groq_llm.py
+test_gemini_llm.py
 testing.py
