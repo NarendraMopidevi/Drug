@@ -17,53 +17,139 @@ def run_rag(
 ):
 
     # Step 1: Get drug data
-    print("Getting drug data")
+
+    print("\n==============================")
+    print("STEP 1: GET DRUG DATA")
+    print("==============================")
+
     drug_data = get_drug(drug_name)
-    print("Drug data received")
-    # Step 2: Convert drug data into LangChain documents
+
+    print("Drug data received successfully")
+
+
+    # Step 2: Build documents
+
+    print("\n==============================")
+    print("STEP 2: BUILD DOCUMENTS")
+    print("==============================")
+
     documents = build_drug_documents(
         drug_data
     )
-    print(f"Document created, len of doc {len(documents)}")
 
-    chunked_document = chunk_documents(documents)
-    print(f"Document chunking completed, len of chunks {len(chunked_document)}")
-
-    # Step 3: Create FAISS vector storage
-    vector_storage = create_vector_storage(
-        chunked_document
+    print(
+        f"Number of documents: {len(documents)}"
     )
-    print(f"Vector storage created, no of vectors {vector_storage.index.ntotal} and dimensions {vector_storage.index.d}")
-    # Step 4: Search for relevant documents
+
+
+    # Step 3: Chunk documents
+
+    print("\n==============================")
+    print("STEP 3: CHUNK DOCUMENTS")
+    print("==============================")
+
+    chunked_documents = chunk_documents(
+        documents
+    )
+
+    print(
+        f"Number of chunks: {len(chunked_documents)}"
+    )
+
+
+    # Step 4: Create FAISS
+
+    print("\n==============================")
+    print("STEP 4: CREATE VECTOR STORAGE")
+    print("==============================")
+
+    vector_storage = create_vector_storage(
+        chunked_documents
+    )
+
+    print(
+        f"Number of vectors: "
+        f"{vector_storage.index.ntotal}"
+    )
+
+    print(
+        f"Vector dimensions: "
+        f"{vector_storage.index.d}"
+    )
+
+
+    # Step 5: Semantic search
+
+    print("\n==============================")
+    print("STEP 5: SEMANTIC SEARCH")
+    print("==============================")
+
+    print(
+        f"Query: {query}"
+    )
+
     retrieved_documents = search_documents(
         vector_storage,
         query=query,
         k=k
     )
 
-    # Step 5: Build context from retrieved documents
+    print(
+        f"Retrieved documents: "
+        f"{len(retrieved_documents)}"
+    )
+
+
+    # Step 6: Display retrieved documents
+
+    print("\n==============================")
+    print("RETRIEVED DOCUMENTS")
+    print("==============================")
+
+    for i, document in enumerate(
+        retrieved_documents,
+        start=1
+    ):
+
+        print(
+            f"\n--- Document {i} ---"
+        )
+
+        print(
+            f"Source: "
+            f"{document.metadata.get('source')}"
+        )
+
+        print(
+            f"Type: "
+            f"{document.metadata.get('type')}"
+        )
+
+        print(
+            f"Drug: "
+            f"{document.metadata.get('drug_name')}"
+        )
+
+        print("\nContent:")
+
+        print(
+            document.page_content
+        )
+
+
+    # Step 7: Build context
+
     context = "\n\n".join(
         document.page_content
         for document in retrieved_documents
     )
 
-    # Step 6: Return context
+
+    print("\n==============================")
+    print("CONTEXT CREATED")
+    print("==============================")
+
+    print(context)
+
+
     return context
-
-
-# # Test
-# if __name__ == "__main__":
-
-#     drug_name = "Aspirin"
-
-#     query = "What chemical formula of aspirin?"
-
-#     context = run_rag(
-#         drug_name,
-#         query,
-#         k=3
-#     )
-
-#     print("\nRetrieved Context:\n")
-
-#     print(context)

@@ -10,3 +10,6 @@ test_gemini_api.py
 test_groq_llm.py
 test_gemini_llm.py
 testing.py
+test_get_drug.py
+test_pubchem.py
+testing.py

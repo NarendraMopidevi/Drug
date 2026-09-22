@@ -6,10 +6,15 @@ def get_data_from_pubchem(drug_name: str):
     url = (
         "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/"
         f"name/{drug_name}/property/"
-        "Title,MolecularFormula,MolecularWeight,ConnectivitySMILES/JSON"
+        "Title,MolecularFormula,MolecularWeight,"
+        "ConnectivitySMILES,SMILES/JSON"
     )
 
     response = requests.get(url)
+
+    print("URL:", url)
+    print("Status Code:", response.status_code)
+    print("Response:", response.text)
 
     if response.status_code != 200:
         return None
