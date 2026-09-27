@@ -2,7 +2,7 @@ import streamlit as st
 
 from app.api.drugs import get_drug
 from app.rag.pipeline import run_rag
-from app.services.llm.groq import GroqProvider
+from app.services.llm.gemini import GeminiProvider
 
 
 # -----------------------------------
@@ -22,8 +22,7 @@ st.set_page_config(
 
 @st.cache_resource
 def get_llm():
-
-    return GroqProvider()
+    return GeminiProvider()
 
 
 llm = get_llm()
@@ -42,17 +41,35 @@ st.write(
 
 
 # -----------------------------------
+# Project Warning
+# -----------------------------------
+
+st.warning(
+    "⚠️ Research & Educational Prototype: "
+    "This application is not a medical diagnosis or treatment system. "
+    "Information should be verified using authoritative scientific sources "
+    "and qualified healthcare or research professionals."
+)
+
+
+# -----------------------------------
+# Initialize Chat History
+# -----------------------------------
+
+if "chat_history" not in st.session_state:
+    st.session_state["chat_history"] = []
+
+
+# -----------------------------------
 # Drug Search
 # -----------------------------------
 
 st.header("1. Search Drug")
 
-
 drug_name = st.text_input(
     "Enter drug name",
     placeholder="Example: Aspirin"
 )
-
 
 search_button = st.button(
     "Search Drug"
@@ -73,6 +90,9 @@ if search_button and drug_name:
 
             st.session_state["drug_data"] = drug_data
             st.session_state["drug_name"] = drug_name
+
+            # Optional: clear previous chat when a new drug is selected
+            st.session_state["chat_history"] = []
 
             st.success(
                 f"Information retrieved for {drug_name}"
@@ -229,7 +249,9 @@ if "drug_data" in st.session_state:
     )
 
 
+    # -----------------------------------
     # Targets
+    # -----------------------------------
 
     targets = biological.get(
         "targets",
@@ -265,7 +287,9 @@ if "drug_data" in st.session_state:
                 )
 
 
+    # -----------------------------------
     # Target Details
+    # -----------------------------------
 
     target_details = biological.get(
         "target_details",
@@ -467,11 +491,9 @@ if "drug_data" in st.session_state:
                 )
 
 
-# -----------------------------------
-# Question Answering
-# -----------------------------------
-
-if "drug_data" in st.session_state:
+    # -----------------------------------
+    # Question Answering
+    # -----------------------------------
 
     st.header("3. Ask Questions")
 
@@ -480,11 +502,14 @@ if "drug_data" in st.session_state:
         placeholder="Example: What is the mechanism of action?"
     )
 
-
     ask_button = st.button(
         "Ask Question"
     )
 
+
+    # -----------------------------------
+    # Generate Answer
+    # -----------------------------------
 
     if ask_button and question:
 
@@ -498,6 +523,7 @@ if "drug_data" in st.session_state:
 
             try:
 
+                # Retrieve relevant context
                 context = run_rag(
                     drug_name,
                     question,
@@ -505,36 +531,35 @@ if "drug_data" in st.session_state:
                 )
 
 
-                prompt = f"""
-You are a scientific drug information assistant.
+                # -----------------------------------
+                # Guardrailed Prompt
+                # -----------------------------------
 
-Answer the user's question using
-the retrieved context below and you can use your own data.
+                prompt = f""" You are Drug Copilot, a scientific drug information assistant. Answer the user's question using the retrieved context below. You can also use your general scientific and pharmaceutical knowledge. Use the retrieved context when it contains relevant drug-specific information. Use your own knowledge to explain concepts, definitions, mechanisms, terminology, and general scientific information. Do not make up specific experimental results, numerical values, citations, drug properties, targets, or database records. If the context does not contain enough information for a specific drug-related answer, use your general knowledge where appropriate. If the information cannot be answered reliably, say that the available information is insufficient. Only answer questions related to drugs, pharmaceuticals, pharmacology, drug discovery, drug development, medicinal chemistry, bioactivity, drug targets, mechanisms of action, adverse effects, clinical research, and related life-science topics. If the user asks about something unrelated to drugs, pharmaceuticals, or the above scientific topics, politely say that you can only help with drug and pharmaceutical-related questions. Retrieved Context: {context} User Question: {question} Provide a clear, natural, and concise answer. """
 
-If the context does not contain enough
-information to answer the question,
-say that the available information is
-insufficient.
-
-Retrieved Context:
-
-{context}
-
-User Question:
-
-{question}
-
-Provide a clear and concise answer.
-"""
-
-
+                # Generate Gemini response
                 answer = llm.generate(
                     prompt
                 )
 
 
+                # -----------------------------------
+                # Save Chat History
+                # -----------------------------------
+
+                st.session_state["chat_history"].append({
+                    "drug_name": drug_name,
+                    "question": question,
+                    "answer": answer
+                })
+
+
+                # -----------------------------------
+                # Display Current Answer
+                # -----------------------------------
+
                 st.subheader(
-                    "🤖 Answer"
+                    "🤖 Drug Copilot"
                 )
 
                 st.write(
@@ -547,3 +572,42 @@ Provide a clear and concise answer.
                 st.error(
                     f"Error generating answer: {e}"
                 )
+
+
+    # -----------------------------------
+    # Chat History
+    # -----------------------------------
+
+    if st.session_state["chat_history"]:
+
+        st.header("💬 Chat History")
+
+        for index, chat in enumerate(
+            st.session_state["chat_history"],
+            start=1
+        ):
+
+            with st.expander(
+                f"Conversation {index} — {chat['drug_name']}"
+            ):
+
+                st.markdown(
+                    f"**👤 You:** {chat['question']}"
+                )
+
+                st.markdown(
+                    f"**🤖 Drug Copilot:** {chat['answer']}"
+                )
+
+
+        # -----------------------------------
+        # Clear Chat History
+        # -----------------------------------
+
+        if st.button(
+            "🗑️ Clear Chat History"
+        ):
+
+            st.session_state["chat_history"] = []
+
+            st.rerun()

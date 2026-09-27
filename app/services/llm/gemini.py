@@ -4,16 +4,21 @@ from google import genai
 
 load_dotenv()
 
-API_KEY = os.getenv("GEMINI_API_KEY")
-MODEL_NAME = "gemini-3.7-flash"
+api_key = os.getenv("GEMINI_API_KEY")
 
-client = genai.Client(api_key= API_KEY)
+if not api_key:
+    raise ValueError("GEMINI_API_KEY is not set in .env")
+
+client = genai.Client(api_key=api_key)
 
 
-def generate_response(prompt : str):
+class GeminiProvider:
 
-    response = client.models.generate_content(
-        model = MODEL_NAME,
-        contents = prompt
-    )
-    return response
+    def generate(self, prompt):
+
+        response = client.models.generate_content(
+            model="gemini-3.8-flash",
+            contents=prompt
+        )
+
+        return response.text
