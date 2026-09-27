@@ -611,3 +611,26 @@ if "drug_data" in st.session_state:
             st.session_state["chat_history"] = []
 
             st.rerun()
+    # -----------------------------------
+    # Resources & Technologies
+    # -----------------------------------
+
+    st.divider()
+
+    st.header("📚 Resources & Technologies")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+    
+        st.subheader("🔬 Scientific Resources")
+
+        st.markdown("""
+        - **PubChem** – Chemical properties and molecular information
+        - **ChEMBL** – Drug targets, mechanisms and bioactivity
+        - **PubMed** – Scientific research papers and abstracts
+        """)
+    st.caption(
+        "Drug Discovery & Drug Information Copilot | "
+        "Research & Educational Prototype"
+    )
